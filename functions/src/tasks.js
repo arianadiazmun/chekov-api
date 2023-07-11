@@ -30,20 +30,47 @@ export async function addTask(req, res) {
 }
 
 // update tasks
-export async function updateTask (req,res) {
-  const {done, uid}= req.body;
-  
-  if(!uid) {
-    res.status(401).send({success: false, message: "Not a valid request"});
+export async function updateTask(req, res) {
+  const { uid } = req.params;
+  const { done, id } = req.body;
+
+  if (!uid) {
+    res.status(401).send({ success: false, message: "Not a valid request" });
     return;
   }
 
-  const updates= {
+  const updates = {
     done,
-    updatedAt: FieldValue.serverTimestamp()
+    updatedAt: FieldValue.serverTimestamp(),
+  };
+
+  await coll
+    .doc(id)
+    .update(updates)
+    .catch((err) => {
+      res.status(500).send({ message: err });
+      return;
+    });
+
+  getTasks(req, res);
+}
+
+//DELETE TASKS
+
+export async function deleteTask(req, res) {
+  const { uid } = req.params;
+  const { id } = req.body;
+
+  if (!uid) {
+    res.status(401).send({ success: false, message: "Not a valid request" });
+    return;
   }
 
-  await coll.doc(uid).update(updates);
+  const deleteDoc = {
+    id,
+  };
+
+  await coll.doc(id).delete(deleteDoc);
 
   getTasks(req, res);
 }
